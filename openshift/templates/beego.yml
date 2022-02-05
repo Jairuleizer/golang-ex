@@ -1,0 +1,121 @@
+---
+kind: Template
+apiVersion: v1
+metadata:
+  name: beego-fatesg
+  annotations:
+    description: An example Beego (http://beego.me/) application written in Golang
+    tags: quickstart,golang
+    iconClass: icon-go-gopher
+labels:
+  template: beego-fatesg
+  app: beego-fatesg
+objects:
+  - kind: Service
+    apiVersion: v1
+    metadata:
+      name: beego-fatesg
+      annotations:
+        description: Exposes and load balances the application pods
+    spec:
+      ports:
+        - name: web
+          port: 8080
+          targetPort: 8080
+      selector:
+        name: beego-fatesg
+  - kind: Route
+    apiVersion: v1
+    metadata:
+      name: beego-fatesg
+    spec:
+      host: "${APPLICATION_DOMAIN}"
+      to:
+        kind: Service
+        name: beego-fatesg
+  - kind: ImageStream
+    apiVersion: v1
+    metadata:
+      name: beego-fatesg
+      annotations:
+        description: Keeps track of changes in the application image
+  - kind: BuildConfig
+    apiVersion: v1
+    metadata:
+      name: beego-fatesg
+      annotations:
+        description: Defines how to build the application
+    spec:
+      source:
+        type: Git
+        git:
+          uri: "${SOURCE_REPOSITORY_URL}"
+          ref: "${SOURCE_REPOSITORY_REF}"
+        contextDir: "${CONTEXT_DIR}"
+      strategy:
+        type: Docker
+      output:
+        to:
+          kind: ImageStreamTag
+          name: beego-fatesg:latest
+      triggers:
+        - type: ConfigChange
+        - type: GitHub
+          github:
+            secret: "${GITHUB_WEBHOOK_SECRET}"
+      postCommit:
+        script: go test -v ./...
+  - kind: DeploymentConfig
+    apiVersion: v1
+    metadata:
+      name: beego-fatesg
+      annotations:
+        description: Defines how to deploy the application server
+    spec:
+      strategy:
+        type: Recreate
+      triggers:
+        - type: ImageChange
+          imageChangeParams:
+            automatic: true
+            containerNames:
+              - beego-fatesg
+            from:
+              kind: ImageStreamTag
+              name: beego-fatesg:latest
+        - type: ConfigChange
+      replicas: 1
+      selector:
+        name: beego-fatesg
+      template:
+        metadata:
+          name: beego-fatesg
+          labels:
+            name: beego-fatesg
+        spec:
+          containers:
+            - name: beego-fatesg
+              image: beego-fatesg
+              ports:
+                - containerPort: 8080
+parameters:
+  - name: SOURCE_REPOSITORY_URL
+    description: The URL of the repository with your application source code
+    value: https://github.com/Jairuleizer/golang-ex.git
+  - name: SOURCE_REPOSITORY_REF
+    description:
+      Set this to a branch name, tag or other ref of your repository if you
+      are not using the default branch
+  - name: CONTEXT_DIR
+    description:
+      Set this to the relative path to your project if it is not in the root
+      of your repository
+  - name: APPLICATION_DOMAIN
+    description: The exposed hostname that will route to the Beego service
+    value: beego-fatesg.openshiftapps.com
+  - name: GITHUB_WEBHOOK_SECRET
+    description:
+      Github trigger secret.  A difficult to guess string encoded as part
+      of the webhook URL.  Not encrypted.
+    generate: expression
+    from: "[a-zA-Z0-9]{40}"
