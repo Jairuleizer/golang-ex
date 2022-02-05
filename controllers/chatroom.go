@@ -21,7 +21,7 @@ import (
 	"github.com/astaxie/beego"
 	"github.com/gorilla/websocket"
 
-	"github.com/openshift/golang-ex/models"
+	"github.com/Jairuleizer/golang-ex/models"
 )
 
 type Subscription struct {

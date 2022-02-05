@@ -15,7 +15,7 @@
 package controllers
 
 import (
-	"github.com/openshift/golang-ex/models"
+	"github.com/Jairuleizer/golang-ex/models"
 )
 
 // LongPollingController handles long polling requests.
