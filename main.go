@@ -21,7 +21,7 @@ import (
 	"github.com/astaxie/beego"
 	"github.com/beego/i18n"
 
-	"github.com/openshift/golang-ex/controllers"
+	"github.com/Jairuleizer/golang-ex/controllers"
 )
 
 const (

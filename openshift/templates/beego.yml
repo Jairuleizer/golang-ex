@@ -57,7 +57,7 @@ objects:
       output:
         to:
           kind: ImageStreamTag
-          name: beego-example:latest
+          name: beego-fatesg:latest
       triggers:
         - type: ConfigChange
         - type: GitHub
